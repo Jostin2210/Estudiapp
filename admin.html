@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudiApp - Panel de Administrador</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase App (core) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <!-- Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="EstudiApp Logo" style="height: 40px;">
+            <h1>EstudiApp - Admin</h1>
+        </div>
+        <nav>
+            <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+            <button class="nav-btn" data-page="usuarios">Usuarios</button>
+            <button class="nav-btn" data-page="estadisticas-admin">Estadísticas</button>
+            <button id="logout-btn" class="nav-btn">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Dashboard de Administrador -->
+        <section id="dashboard" class="page active">
+            <div class="container">
+                <h2>Panel de Administrador</h2>
+                <div class="stats-summary">
+                    <div class="stat-card">
+                        <h3>Total de usuarios</h3>
+                        <p id="total-usuarios">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 style="text-decoration: none;">Sesiones registradas</h3>
+                        <p id="total-sesiones">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Horas totales</h3>
+                        <p id="total-horas">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Materia más estudiada</h3>
+                        <p id="materia-popular">Ninguna</p>
+                    </div>
+                </div>
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Actividad de usuarios (últimos 7 días)</h3>
+                        <canvas id="chart-actividad"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Distribución de materias (global)</h3>
+                        <canvas id="chart-materias-global"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestión de Usuarios -->
+        <section id="usuarios" class="page">
+            <div class="container">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Gestión de Usuarios</h3>
+                        <div class="table-controls">
+                            <input type="text" id="buscar-usuario" class="form-control" placeholder="Buscar usuario...">
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Fecha de registro</th>
+                                <th>Sesiones</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-body">
+                            <!-- El contenido se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Estadísticas Globales -->
+        <section id="estadisticas-admin" class="page">
+            <div class="container">
+                <h2>Estadísticas Globales</h2>
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label for="filtro-periodo">Periodo:</label>
+                        <select id="filtro-periodo" class="form-control">
+                            <option value="mes">Último mes</option>
+                            <option value="trimestre">Último trimestre</option>
+                            <option value="todo">Todo el tiempo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtro-usuario">Estudiante:</label>
+                        <select id="filtro-usuario" class="form-control">
+                            <option value="todos">Todos</option>
+                            <!-- Opciones de usuarios se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Horas de estudio por día</h3>
+                        <canvas id="chart-global-dias"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Top 5 usuarios más activos</h3>
+                        <canvas id="chart-top-usuarios"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>EstudiApp © 2023 - Panel de Administración</p>
+    </footer>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBk74mToyPXtyaCQK4mqkGTrS6yXfyWu5g",
+        authDomain: "estadistica-da076.firebaseapp.com",
+        databaseURL: "https://estadistica-da076-default-rtdb.firebaseio.com",
+        projectId: "estadistica-da076",
+        storageBucket: "estadistica-da076.appspot.com",
+        messagingSenderId: "195518375872",
+        appId: "1:195518375872:web:27f927e2c3e462e5424a25",
+        measurementId: "G-E2YJ87LT51"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+    </script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
