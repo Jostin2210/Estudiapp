@@ -120,7 +120,7 @@ async function registrarUsuario(nombre, email, password) {
         fechaRegistro: new Date().toISOString()
     };
     await guardarUsuario(nuevoUsuario);
-    localStorage.setItem('usuarioActual', nuevoUsuario.id);
+    localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
     return { exito: true, usuario: nuevoUsuario };
 }
 
