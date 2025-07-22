@@ -233,67 +233,63 @@ async function actualizarDashboard() {
 }
 
 // Crear gráfico de actividad de usuarios
-function crearGraficoActividad() {
+async function crearGraficoActividad() {
     const ctx = document.getElementById('chart-actividad').getContext('2d');
-    
-    // Obtener datos de los últimos 7 días
+    // Obtener usuarios y sesiones globales
+    const usuarios = (await obtenerUsuarios()).filter(u => u.rol !== 'admin');
+    const sesiones = await obtenerTodasLasSesiones();
+    // Fechas de los últimos 7 días
     const hoy = new Date();
     const fechas = [];
     const datos = [];
-    (async function() {
-        for (let i = 7; i >= 0; i--) {
-            const fecha = new Date(hoy);
-            fecha.setDate(hoy.getDate() - i);
-            fechas.push(fecha.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }));
-            // Sumar horas estudiadas solo de estudiantes para esta fecha
-            const fechaStr = fecha.toISOString().split('T')[0];
-            // Filtrar solo usuarios que no sean admin
-            const usuarios = await obtenerUsuarios(); // Await para obtener usuarios
-            let horasDia = 0;
-            for (const usuario of usuarios) {
-                if (usuario.rol !== 'admin') {
-                    const sesionesUsuario = JSON.parse(localStorage.getItem(`sesiones_${usuario.id}`)) || [];
-                    sesionesUsuario.forEach(sesion => {
-                        if (sesion.fecha.split('T')[0] === fechaStr) {
-                            horasDia += parseFloat(sesion.duracion || 0);
-                        }
-                    });
-                }
+    for (let i = 7; i >= 0; i--) {
+        const fecha = new Date(hoy);
+        fecha.setDate(hoy.getDate() - i);
+        fechas.push(fecha.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }));
+        const fechaStr = fecha.toISOString().split('T')[0];
+        // Sumar horas de sesiones de usuarios (no admin) para esta fecha
+        let horasDia = 0;
+        sesiones.forEach(sesion => {
+            if (
+                usuarios.some(u => String(u.id) === String(sesion.usuarioId)) &&
+                sesion.fecha && sesion.fecha.split('T')[0] === fechaStr
+            ) {
+                horasDia += parseFloat(sesion.duracion || 0);
             }
-            datos.push(horasDia);
-        }
-        // Destruir gráfico existente si hay uno
-        if (window.chartActividad) {
-            window.chartActividad.destroy();
-        }
-        window.chartActividad = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: fechas,
-                datasets: [{
-                    label: 'Horas estudiadas',
-                    data: datos,
-                    backgroundColor: 'rgba(166, 124, 82, 0.2)',
-                    borderColor: '#a67c52',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
+        });
+        datos.push(horasDia);
+    }
+    // Destruir gráfico existente si hay uno
+    if (window.chartActividad) {
+        window.chartActividad.destroy();
+    }
+    window.chartActividad = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: fechas,
+            datasets: [{
+                label: 'Horas estudiadas',
+                data: datos,
+                backgroundColor: 'rgba(166, 124, 82, 0.2)',
+                borderColor: '#a67c52',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
                     }
                 }
             }
-        });
-    })();
+        }
+    });
 }
 
 // Crear gráfico de distribución global de materias
