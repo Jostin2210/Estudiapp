@@ -137,7 +137,6 @@ async function iniciarSesion(email, password) {
         return { exito: false, mensaje: 'Correo electrónico o contraseña incorrectos' };
     }
     localStorage.setItem('usuarioActual', JSON.stringify(usuario));
-    actualizarInterfazUsuario(usuario);
     return { exito: true, usuario };
 }
 
@@ -184,6 +183,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             const resultado = await registrarUsuario(nombre, email, password);
             if (resultado.exito) {
+                localStorage.setItem('usuarioActual', JSON.stringify(resultado.usuario));
                 Swal.fire({ icon: 'success', title: '¡Registro exitoso!', text: 'Bienvenido a EstudiApp', confirmButtonColor: '#a67c52' }).then(() => {
                     window.location.href = 'index.html';
                 });
@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const password = document.getElementById('password').value;
             const resultado = await iniciarSesion(email, password);
             if (resultado.exito) {
+                localStorage.setItem('usuarioActual', JSON.stringify(resultado.usuario));
                 Swal.fire({ icon: 'success', title: '¡Bienvenido!', text: `Hola de nuevo, ${resultado.usuario.nombre}`, confirmButtonColor: '#a67c52' }).then(() => {
                     if (resultado.usuario.rol === 'admin') {
                         window.location.href = 'admin.html';
